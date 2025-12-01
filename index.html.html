@@ -1,0 +1,728 @@
+<!doctype html>
+<html lang="it">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pianificatore Giardino</title>
+  <script src="/_sdk/element_sdk.js"></script>
+  <script src="/_sdk/data_sdk.js"></script>
+  <style>
+    body {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Arial', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    .container {
+      width: 100%;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2rem;
+    }
+
+    .title {
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: #ffffff;
+      text-align: center;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+      margin: 0;
+    }
+
+    .garden-container {
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 3rem;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      position: relative;
+      width: 90%;
+      max-width: 800px;
+    }
+
+    .garden-box {
+      position: relative;
+      width: 100%;
+      padding-bottom: 75%;
+      border: 4px solid #8b6f47;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #d4c5a9 0%, #f4e8d0 100%);
+    }
+
+    .circles-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      padding: 2rem;
+    }
+
+    .circle {
+      position: absolute;
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      border: 3px solid #8b6f47;
+      background: #fef9f1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .circle:hover {
+      transform: scale(1.1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      background: #fff;
+    }
+
+    .circle.filled {
+      background: #a8d5ba;
+      border-color: #4a7c59;
+    }
+
+    .plant-selector {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+      z-index: 1000;
+      min-width: 320px;
+      display: none;
+    }
+
+    .plant-selector.active {
+      display: block;
+    }
+
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 999;
+      display: none;
+    }
+
+    .overlay.active {
+      display: block;
+    }
+
+    .selector-header {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+
+    .plant-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .plant-button {
+      padding: 1rem;
+      border: 2px solid #667eea;
+      border-radius: 8px;
+      background: white;
+      color: #667eea;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .plant-button:hover {
+      background: #667eea;
+      color: white;
+      transform: translateY(-2px);
+    }
+
+    .add-plant-section {
+      border-top: 2px solid #e0e0e0;
+      padding-top: 1.5rem;
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .add-plant-input {
+      flex: 1;
+      padding: 0.75rem;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+
+    .add-plant-input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .add-button {
+      padding: 0.75rem 1.5rem;
+      background: #4caf50;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .add-button:hover {
+      background: #45a049;
+      transform: translateY(-2px);
+    }
+
+    .close-button {
+      width: 100%;
+      padding: 0.75rem;
+      background: #f44336;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-top: 1rem;
+    }
+
+    .close-button:hover {
+      background: #da190b;
+    }
+
+    .remove-button {
+      padding: 0.5rem 1rem;
+      background: #ff9800;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-top: 0.5rem;
+    }
+
+    .remove-button:hover {
+      background: #f57c00;
+    }
+
+    .move-section {
+      border-top: 2px solid #e0e0e0;
+      padding-top: 1rem;
+      margin-top: 1rem;
+    }
+
+    .move-title {
+      font-size: 1rem;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 0.75rem;
+    }
+
+    .circle-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.5rem;
+    }
+
+    .circle-option {
+      padding: 0.75rem;
+      background: #f0f0f0;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      text-align: center;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.2s ease;
+    }
+
+    .circle-option:hover {
+      background: #e0e0e0;
+      border-color: #667eea;
+    }
+
+    .circle-option.occupied {
+      background: #ffebee;
+      border-color: #f44336;
+      cursor: not-allowed;
+    }
+
+    .circle-option.current {
+      background: #e3f2fd;
+      border-color: #2196f3;
+    }
+
+    .legend {
+      margin-top: 2rem;
+      padding: 1.5rem;
+      background: #f8f9fa;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 800px;
+    }
+
+    .legend-title {
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 1rem;
+    }
+
+    .legend-items {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: white;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      color: #555;
+    }
+
+    .legend-icon {
+      font-size: 1.5rem;
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+ </head>
+ <body>
+  <div class="container">
+   <h1 class="title" id="mainTitle">Il Mio Giardino</h1>
+   <div class="garden-container">
+    <div class="garden-box">
+     <div class="circles-container" id="circlesContainer"></div>
+    </div>
+   </div>
+   <div class="legend">
+    <div class="legend-title">
+     Piante nel Giardino
+    </div>
+    <div class="legend-items" id="legendItems">
+     <div class="legend-item"><span class="legend-icon">🌱</span> <span>Nessuna pianta ancora</span>
+     </div>
+    </div>
+   </div>
+  </div>
+  <div class="overlay" id="overlay"></div>
+  <div class="plant-selector" id="plantSelector">
+   <div class="selector-header">
+    Scegli una Pianta
+   </div>
+   <div class="plant-list" id="plantList"></div>
+   <div class="add-plant-section"><input type="input" class="add-plant-input" id="newPlantInput" placeholder="Aggiungi nuova pianta..."> <button class="add-button" id="addPlantButton">+</button>
+   </div>
+   <div class="move-section" id="moveSection" style="display: none;">
+    <div class="move-title">
+     Sposta in un altro buco:
+    </div>
+    <div class="circle-grid" id="circleGrid"></div>
+   </div><button class="close-button" id="closeSelector">Chiudi</button>
+  </div>
+  <script>
+    const defaultConfig = {
+      title_text: "Il Mio Giardino",
+      primary_color: "#667eea",
+      secondary_color: "#ffffff",
+      text_color: "#333333",
+      accent_color: "#4caf50",
+      background_color: "#764ba2"
+    };
+
+    let currentConfig = { ...defaultConfig };
+    let currentCircleId = null;
+    let plantAssignments = new Map();
+    let availablePlants = ["Cavolo Nero 🥬", "Prezzemolo 🌿", "Basilico 🌱"];
+
+    const circlePositions = [
+      { left: '2%', top: '8%' },    // 1
+      { left: '8%', top: '28%' },   // 2
+      { left: '14%', top: '48%' },  // 3
+      { left: '20%', top: '8%' },   // 4
+      { left: '26%', top: '28%' },  // 5
+      { left: '32%', top: '48%' },  // 6
+      { right: '20%', top: '8%' },  // 7
+      { right: '8%', top: '28%' },  // 8
+      { right: '14%', top: '48%' }, // 9
+      { right: '2%', top: '8%' },   // 10
+      { right: '26%', top: '28%' }, // 11
+      { right: '32%', top: '48%' }  // 12
+    ];
+
+    function createCircles() {
+      const container = document.getElementById('circlesContainer');
+      container.innerHTML = '';
+      
+      circlePositions.forEach((pos, index) => {
+        const circle = document.createElement('div');
+        circle.className = 'circle';
+        circle.id = `circle-${index}`;
+        circle.dataset.circleId = index;
+        
+        Object.entries(pos).forEach(([key, value]) => {
+          circle.style[key] = value;
+        });
+        
+        circle.addEventListener('click', () => openPlantSelector(index));
+        container.appendChild(circle);
+      });
+    }
+
+    function openPlantSelector(circleId) {
+      currentCircleId = circleId;
+      updatePlantList();
+      document.getElementById('overlay').classList.add('active');
+      document.getElementById('plantSelector').classList.add('active');
+    }
+
+    function closePlantSelector() {
+      document.getElementById('overlay').classList.remove('active');
+      document.getElementById('plantSelector').classList.remove('active');
+      currentCircleId = null;
+    }
+
+    function updatePlantList() {
+      const plantList = document.getElementById('plantList');
+      const moveSection = document.getElementById('moveSection');
+      plantList.innerHTML = '';
+      
+      const circleKey = `circle-${currentCircleId}`;
+      const hasPlant = Array.from(plantAssignments.values()).find(
+        pa => pa.circle_id === circleKey
+      );
+
+      if (hasPlant) {
+        // Se c'è già una pianta, mostra opzioni per rimuovere o spostare
+        const currentPlantDiv = document.createElement('div');
+        currentPlantDiv.style.cssText = 'padding: 1rem; background: #e8f5e9; border-radius: 8px; margin-bottom: 1rem; text-align: center;';
+        currentPlantDiv.innerHTML = `<strong>Pianta attuale:</strong><br><span style="font-size: 1.5rem;">${hasPlant.plant_name}</span>`;
+        plantList.appendChild(currentPlantDiv);
+
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'remove-button';
+        removeBtn.textContent = '🗑️ Rimuovi Pianta';
+        removeBtn.addEventListener('click', removePlant);
+        plantList.appendChild(removeBtn);
+
+        // Mostra griglia per spostare
+        moveSection.style.display = 'block';
+        updateCircleGrid();
+      } else {
+        // Se non c'è pianta, mostra lista piante disponibili
+        moveSection.style.display = 'none';
+        
+        availablePlants.forEach(plant => {
+          const button = document.createElement('button');
+          button.className = 'plant-button';
+          button.textContent = plant;
+          button.addEventListener('click', () => assignPlant(plant));
+          plantList.appendChild(button);
+        });
+      }
+    }
+
+    function updateCircleGrid() {
+      const circleGrid = document.getElementById('circleGrid');
+      circleGrid.innerHTML = '';
+
+      for (let i = 0; i < 12; i++) {
+        const circleKey = `circle-${i}`;
+        const hasPlant = Array.from(plantAssignments.values()).find(
+          pa => pa.circle_id === circleKey
+        );
+
+        const option = document.createElement('div');
+        option.className = 'circle-option';
+        
+        if (i === currentCircleId) {
+          option.classList.add('current');
+          option.textContent = `${i + 1} (qui)`;
+        } else if (hasPlant) {
+          option.classList.add('occupied');
+          option.textContent = `${i + 1} ✓`;
+        } else {
+          option.textContent = `${i + 1}`;
+          option.addEventListener('click', () => movePlant(i));
+        }
+
+        circleGrid.appendChild(option);
+      }
+    }
+
+    async function movePlant(targetCircleId) {
+      if (currentCircleId === null) return;
+
+      const sourceKey = `circle-${currentCircleId}`;
+      const targetKey = `circle-${targetCircleId}`;
+
+      const sourceAssignment = Array.from(plantAssignments.values()).find(
+        pa => pa.circle_id === sourceKey
+      );
+
+      if (!sourceAssignment) return;
+
+      // Rimuovi dalla posizione corrente
+      await window.dataSdk.delete(sourceAssignment);
+
+      // Aggiungi alla nuova posizione
+      await window.dataSdk.create({
+        circle_id: targetKey,
+        plant_name: sourceAssignment.plant_name
+      });
+
+      closePlantSelector();
+    }
+
+    async function assignPlant(plantName) {
+      if (currentCircleId === null) return;
+      
+      const circleKey = `circle-${currentCircleId}`;
+      const existingAssignment = Array.from(plantAssignments.values()).find(
+        pa => pa.circle_id === circleKey
+      );
+
+      if (existingAssignment) {
+        const result = await window.dataSdk.update({
+          ...existingAssignment,
+          plant_name: plantName
+        });
+        
+        if (result.isOk) {
+          updateCircleDisplay(currentCircleId, plantName);
+          closePlantSelector();
+        }
+      } else {
+        const result = await window.dataSdk.create({
+          circle_id: circleKey,
+          plant_name: plantName
+        });
+        
+        if (result.isOk) {
+          updateCircleDisplay(currentCircleId, plantName);
+          closePlantSelector();
+        }
+      }
+    }
+
+    async function removePlant() {
+      if (currentCircleId === null) return;
+      
+      const circleKey = `circle-${currentCircleId}`;
+      const assignment = Array.from(plantAssignments.values()).find(
+        pa => pa.circle_id === circleKey
+      );
+
+      if (assignment) {
+        const result = await window.dataSdk.delete(assignment);
+        
+        if (result.isOk) {
+          updateCircleDisplay(currentCircleId, null);
+          closePlantSelector();
+        }
+      }
+    }
+
+    function updateCircleDisplay(circleId, plantName) {
+      const circle = document.getElementById(`circle-${circleId}`);
+      if (!circle) return;
+
+      if (plantName) {
+        const emoji = plantName.match(/[\u{1F300}-\u{1F9FF}]/u);
+        circle.textContent = emoji ? emoji[0] : '🌱';
+        circle.classList.add('filled');
+      } else {
+        circle.textContent = '';
+        circle.classList.remove('filled');
+      }
+    }
+
+    function updateLegend() {
+      const legendItems = document.getElementById('legendItems');
+      const plantCounts = new Map();
+
+      plantAssignments.forEach(assignment => {
+        const count = plantCounts.get(assignment.plant_name) || 0;
+        plantCounts.set(assignment.plant_name, count + 1);
+      });
+
+      if (plantCounts.size === 0) {
+        legendItems.innerHTML = `
+          <div class="legend-item">
+            <span class="legend-icon">🌱</span>
+            <span>Nessuna pianta ancora</span>
+          </div>
+        `;
+        return;
+      }
+
+      legendItems.innerHTML = '';
+      plantCounts.forEach((count, plant) => {
+        const emoji = plant.match(/[\u{1F300}-\u{1F9FF}]/u);
+        const plantName = plant.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim();
+        
+        const item = document.createElement('div');
+        item.className = 'legend-item';
+        item.innerHTML = `
+          <span class="legend-icon">${emoji ? emoji[0] : '🌱'}</span>
+          <span>${plantName}: ${count}</span>
+        `;
+        legendItems.appendChild(item);
+      });
+    }
+
+    document.getElementById('closeSelector').addEventListener('click', closePlantSelector);
+    document.getElementById('overlay').addEventListener('click', closePlantSelector);
+
+    document.getElementById('addPlantButton').addEventListener('click', () => {
+      const input = document.getElementById('newPlantInput');
+      const newPlant = input.value.trim();
+      
+      if (newPlant && !availablePlants.some(p => p.toLowerCase().includes(newPlant.toLowerCase()))) {
+        availablePlants.push(`${newPlant} 🌿`);
+        input.value = '';
+        updatePlantList();
+      }
+    });
+
+    document.getElementById('newPlantInput').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        document.getElementById('addPlantButton').click();
+      }
+    });
+
+    const dataHandler = {
+      onDataChanged(data) {
+        plantAssignments.clear();
+        data.forEach(assignment => {
+          plantAssignments.set(assignment.__backendId, assignment);
+        });
+
+        for (let i = 0; i < 12; i++) {
+          const circleKey = `circle-${i}`;
+          const assignment = data.find(a => a.circle_id === circleKey);
+          updateCircleDisplay(i, assignment ? assignment.plant_name : null);
+        }
+
+        updateLegend();
+      }
+    };
+
+    async function onConfigChange(config) {
+      currentConfig = { ...config };
+      
+      const titleElement = document.getElementById('mainTitle');
+      titleElement.textContent = config.title_text || defaultConfig.title_text;
+      titleElement.style.color = config.secondary_color || defaultConfig.secondary_color;
+      
+      document.body.style.background = `linear-gradient(135deg, ${config.primary_color || defaultConfig.primary_color} 0%, ${config.background_color || defaultConfig.background_color} 100%)`;
+      
+      const plantButtons = document.querySelectorAll('.plant-button');
+      plantButtons.forEach(btn => {
+        btn.style.borderColor = config.primary_color || defaultConfig.primary_color;
+        btn.style.color = config.primary_color || defaultConfig.primary_color;
+      });
+      
+      const addButton = document.getElementById('addPlantButton');
+      addButton.style.background = config.accent_color || defaultConfig.accent_color;
+    }
+
+    async function init() {
+      createCircles();
+      
+      const sdkResult = await window.dataSdk.init(dataHandler);
+      if (!sdkResult.isOk) {
+        console.error("Failed to initialize data SDK");
+      }
+
+      if (window.elementSdk) {
+        window.elementSdk.init({
+          defaultConfig,
+          onConfigChange,
+          mapToCapabilities: (config) => ({
+            recolorables: [
+              {
+                get: () => config.primary_color || defaultConfig.primary_color,
+                set: (value) => {
+                  config.primary_color = value;
+                  window.elementSdk.setConfig({ primary_color: value });
+                }
+              },
+              {
+                get: () => config.secondary_color || defaultConfig.secondary_color,
+                set: (value) => {
+                  config.secondary_color = value;
+                  window.elementSdk.setConfig({ secondary_color: value });
+                }
+              },
+              {
+                get: () => config.text_color || defaultConfig.text_color,
+                set: (value) => {
+                  config.text_color = value;
+                  window.elementSdk.setConfig({ text_color: value });
+                }
+              },
+              {
+                get: () => config.accent_color || defaultConfig.accent_color,
+                set: (value) => {
+                  config.accent_color = value;
+                  window.elementSdk.setConfig({ accent_color: value });
+                }
+              },
+              {
+                get: () => config.background_color || defaultConfig.background_color,
+                set: (value) => {
+                  config.background_color = value;
+                  window.elementSdk.setConfig({ background_color: value });
+                }
+              }
+            ],
+            borderables: [],
+            fontEditable: undefined,
+            fontSizeable: undefined
+          }),
+          mapToEditPanelValues: (config) => new Map([
+            ["title_text", config.title_text || defaultConfig.title_text]
+          ])
+        });
+      }
+    }
+
+    init();
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a711f3d466098cf',t:'MTc2NDU3Njc3Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
