@@ -6,16 +6,17 @@
   "icons": {
     "16": "icon16.png",
     "48": "icon48.png",
-    "128": "icon128.png"
+    "128": "icon128.png",
+    "144": "icon144.png"
   },
-"connectors": {
-  "card-buttons": [
-    {
-      "text": "Apri Giardino 🍃",
-      "callback": "https://marangongiorgia68-wq.github.io/giardino-trello/index.html"
-    }
-  ]
-},
+  "connectors": {
+    "card-buttons": [
+      {
+        "text": "Apri Giardino 🍃",
+        "callback": "https://marangongiorgia68-wq.github.io/giardino-trello/index.html"
+      }
+    ]
+  },
   "capabilities": ["card-buttons"],
   "permissions": ["read", "write"]
 }
